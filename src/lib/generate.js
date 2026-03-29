@@ -6,7 +6,8 @@ const client = new OpenAI({
   apiKey: process.env.NVIDIA_API_KEY || process.env.OPENAI_API_KEY || process.env.ANTHROPIC_API_KEY
 });
 
-const MODEL = process.env.AI_MODEL || 'moonshotai/kimi-k2.5';
+// llama-3.1-8b-instruct is ~5x faster than kimi-k2.5 on NIM and free
+const MODEL = process.env.AI_MODEL || 'meta/llama-3.1-8b-instruct';
 
 const PLATFORM_PROMPTS = {
   linkedin: `You are an expert LinkedIn content writer. Generate a LinkedIn post based on the source content.
@@ -72,7 +73,7 @@ export async function generateRepurposedContent(source, platforms, tone = 'profe
     try {
       const response = await client.chat.completions.create({
         model: MODEL,
-        max_tokens: 4096,
+        max_tokens: 1024,
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userPrompt }
