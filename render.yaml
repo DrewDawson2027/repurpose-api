@@ -1,0 +1,12 @@
+services:
+  - type: web
+    runtime: node
+    name: repurpose-api
+    plan: free
+    buildCommand: npm install
+    startCommand: node src/server.js
+    envVars:
+      - key: NVIDIA_API_KEY
+        sync: false
+      - key: NODE_ENV
+        value: production
