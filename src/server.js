@@ -1,34 +1,32 @@
 import express from 'express';
 import cors from 'cors';
 import { repurposeRoute } from './routes/repurpose.js';
+import { validateKey, checkout, stripeWebhook, successPage } from './routes/license.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Middleware — allow all chrome extensions and local dev
-app.use(cors({
-  origin: (origin, callback) => {
-    // Allow Chrome extensions, localhost, and no-origin requests (server-to-server)
-    if (!origin || origin.startsWith('chrome-extension://') || origin.startsWith('http://localhost')) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  methods: ['POST', 'GET'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-}));
+// Stripe webhook needs raw body — must be before express.json()
+app.post('/api/webhook/stripe', express.raw({ type: 'application/json' }), stripeWebhook);
+
+// CORS — allow MCP servers, Chrome extensions, and local dev
+app.use(cors());
 app.use(express.json({ limit: '50kb' }));
 
 // Health check
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', version: '1.0.0' });
+  res.json({ status: 'ok', version: '2.0.0' });
 });
 
-// Main repurpose endpoint
+// License endpoints
+app.get('/api/validate', validateKey);
+app.get('/api/checkout/:product', checkout);
+app.get('/api/success', successPage);
+
+// Repurpose endpoint (legacy)
 app.post('/api/repurpose', repurposeRoute);
 
 // Start server
 app.listen(PORT, () => {
-  console.log(`Repurpose API running on port ${PORT}`);
+  console.log(`API running on port ${PORT}`);
 });
